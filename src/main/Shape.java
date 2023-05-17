@@ -217,6 +217,7 @@ public class Shape {
         double dz = player.z - z;
         double h = Math.hypot(dx, dz);
         distToPlayer = h;
+        distToPlayer = h;
 
         double temp = (dx * dx + h * h - dz * dz) / (2 * dx * h);
         temp = Math.toDegrees(Math.acos(temp));
