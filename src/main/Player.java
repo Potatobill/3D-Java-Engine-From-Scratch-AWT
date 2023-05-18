@@ -58,8 +58,6 @@ public class Player {
             pitch = 0;
         }
 
-        System.out.println("pitch: " + pitch);
-
     }
 
     public boolean isInEscapeMenu() {

@@ -54,7 +54,7 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
         tris.add(new Triangle(new Vertex(100, 100, 100),
                 new Vertex(-100, -100, 100),
                 new Vertex(-100, 100, -100),
-                Color.WHITE));
+                Color.RED));
         tris.add(new Triangle(new Vertex(100, 100, 100),
                 new Vertex(-100, -100, 100),
                 new Vertex(100, -100, -100),
@@ -62,11 +62,11 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
         tris.add(new Triangle(new Vertex(-100, 100, -100),
                 new Vertex(100, -100, -100),
                 new Vertex(100, 100, 100),
-                Color.GREEN));
+                Color.RED));
         tris.add(new Triangle(new Vertex(-100, 100, -100),
                 new Vertex(100, -100, -100),
                 new Vertex(-100, -100, 100),
-                Color.BLUE));
+                Color.RED));
 
         Shape demoSphere = new Shape(tris, ShapeType.SPHERE, 0, 0, 50);
         demoSphere.setWindowDimensions(frame.getWidth(), frame.getHeight());
@@ -88,7 +88,8 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
         g2.fillRect(0, frame.getHeight() / 2, frame.getWidth(), frame.getHeight() / 2);
         g2.setColor(Color.BLACK);
         g2.drawString("x: " + player.x, 10, 10);
-        g2.drawString("z: " + player.z, 110, 10);
+        g2.drawString("z: " + player.z, 160, 10);
+        g2.drawString("pitch: " + player.pitch, 310, 10);
 
         player.setWindowDimensions(frame.getWidth(), frame.getHeight());
         if (player.isInEscapeMenu()) {

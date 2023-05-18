@@ -57,11 +57,6 @@ public class Shape {
 
     public void draw(Graphics2D g2) {
 
-        System.out.println("player.z: " + player.z);
-        System.out.println("shape.z: " + z);
-        System.out.println("pitchToPlayerRAW: " + pitchToPlayerRAW);
-        System.out.println("pitchToPlayerFOV: " + pitchToPlayerFOV);
-
         if (display) {
 
             if (type == ShapeType.SPHERE) {
@@ -216,15 +211,18 @@ public class Shape {
     }
 
     public boolean calculatePitchToPlayer() {
-        double dx = player.x - x;
+        double dx = x - player.x;
         double dy = player.y - y;
-        double dz = player.z - z;
+        double dz = z - player.z;
         double h = Math.hypot(dx, dz);
         distToPlayer = h;
 
-        double temp = (dx * dx + h * h - dz * dz) / (2 * dx * h);
-        temp = Math.toDegrees(Math.acos(temp));
+        double temp = Math.asin(dz / h);
+        temp = Math.toDegrees(temp);
         pitchToPlayerRAW = temp;
+        if (pitchToPlayerRAW < 0) {
+            pitchToPlayerRAW += 360;
+        }
         pitchToPlayerFOV = player.pitch - pitchToPlayerRAW;
 
         if (Math.abs(pitchToPlayerFOV) > 45) {
