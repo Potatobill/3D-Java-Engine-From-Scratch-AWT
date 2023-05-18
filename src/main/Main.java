@@ -16,6 +16,10 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
 
     private Graphics2D graphics;
 
+    private BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+    private Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImg, new Point(0, 0), "blank cursor");
+    private Cursor defaultCursor;
+
     public static void main(String[] args) {
 
         Main game = new Main();
@@ -29,6 +33,10 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
     }
 
     public Main() {
+
+        // Set the blank cursor to the JFrame.
+        defaultCursor = frame.getCursor();
+        frame.getContentPane().setCursor(blankCursor);
 
         shapes = new ArrayList<>();
 
@@ -78,10 +86,13 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
         g2.fillRect(0, 0, frame.getWidth(), frame.getHeight() / 2);
         g2.setColor(Color.GREEN);
         g2.fillRect(0, frame.getHeight() / 2, frame.getWidth(), frame.getHeight() / 2);
+        g2.setColor(Color.BLACK);
+        g2.drawString("x: " + player.x, 10, 10);
+        g2.drawString("z: " + player.z, 110, 10);
 
         player.setWindowDimensions(frame.getWidth(), frame.getHeight());
         if (player.isInEscapeMenu()) {
-            graphics.setColor(Color.BLACK);
+            g2.setColor(Color.BLACK);
             graphics.drawString("Escape Menu", getWidth() / 2, getHeight() / 2);
         }
 
@@ -93,6 +104,11 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
             }
 
         }
+
+        // HORIZONTAL SECTION OF CURSOR
+        g2.fillRect(getWidth() / 2 - 10, getHeight() / 2 - 2, 20, 4);
+        // VERTICAL SECTION OF CURSOR
+        g2.fillRect(getWidth() / 2 - 2, getHeight() / 2 - 10, 4, 20);
 
     }
 
@@ -133,8 +149,10 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
 
             if (player.isInEscapeMenu()) {
                 player.setInEscapeMenu(false);
+                frame.setCursor(blankCursor);
             } else {
                 player.setInEscapeMenu(true);
+                frame.setCursor(defaultCursor);
             }
 
         }

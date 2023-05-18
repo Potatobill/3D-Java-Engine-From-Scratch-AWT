@@ -14,6 +14,7 @@ public class Shape {
     private int windowHeight;
 
     private boolean inflated;
+    private boolean display;
 
     double x;
     double y;
@@ -29,6 +30,7 @@ public class Shape {
         this.type = type;
 
         inflated = false;
+        display = false;
 
         this.x = x;
         this.y = y;
@@ -60,56 +62,58 @@ public class Shape {
         System.out.println("pitchToPlayerRAW: " + pitchToPlayerRAW);
         System.out.println("pitchToPlayerFOV: " + pitchToPlayerFOV);
 
-        if (type == ShapeType.SPHERE) {
+        if (display) {
+
+            if (type == ShapeType.SPHERE) {
 
 
+                // FIX INFLATE PROBLEM (run to see)
 
 
+                if (inflated) {
 
+                } else {
 
-            // FIX INFLATE PROBLEM (run to see)
+                    for (int i = 0; i < 4; i++) {
+                        inflate();
+                    }
 
+                    inflated = true;
 
-
-
-            if (inflated) {
-
-            } else {
-
-                for (int i = 0; i < 4; i++) {
-                    inflate();
                 }
 
-                inflated = true;
+                double heading = Math.toRadians(pitchToPlayerFOV / 3);
+                Matrix3 headingTransform = new Matrix3(new double[]{
+                        Math.cos(heading), 0, -Math.sin(heading),
+                        0, 1, 0,
+                        Math.sin(heading), 0, Math.cos(heading)
+                });
+                double pitch = Math.toRadians(0);
+                Matrix3 pitchTransform = new Matrix3(new double[]{
+                        1, 0, 0,
+                        0, Math.cos(pitch), Math.sin(pitch),
+                        0, -Math.sin(pitch), Math.cos(pitch)
+                });
+                Matrix3 zoomTransform = new Matrix3(new double[]{
+                        3 / distToPlayer, 0, 0,
+                        0, 3 / distToPlayer, 0,
+                        0, 0, 3 / distToPlayer
+                });
 
+                Matrix3 transform = headingTransform.multiply(pitchTransform).multiply(zoomTransform);
+
+                BufferedImage img = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_ARGB);
+
+                double[] zBuffer = new double[img.getWidth() * img.getHeight()];
+                // initialize array with extremely far away depths
+                for (int q = 0; q < zBuffer.length; q++) {
+                    zBuffer[q] = Double.NEGATIVE_INFINITY;
+                }
+
+                applyTransforms(transform, zBuffer, img);
+
+                g2.drawImage(img, 0, 0, null);
             }
-
-            double heading = Math.toRadians(pitchToPlayerFOV / 3);
-            Matrix3 headingTransform = new Matrix3(new double[]{
-                    Math.cos(heading), 0, -Math.sin(heading),
-                    0, 1, 0,
-                    Math.sin(heading), 0, Math.cos(heading)
-            });
-            double pitch = Math.toRadians(0);
-            Matrix3 pitchTransform = new Matrix3(new double[]{
-                    1, 0, 0,
-                    0, Math.cos(pitch), Math.sin(pitch),
-                    0, -Math.sin(pitch), Math.cos(pitch)
-            });
-
-            Matrix3 transform = headingTransform.multiply(pitchTransform);
-
-            BufferedImage img = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_ARGB);
-
-            double[] zBuffer = new double[img.getWidth() * img.getHeight()];
-            // initialize array with extremely far away depths
-            for (int q = 0; q < zBuffer.length; q++) {
-                zBuffer[q] = Double.NEGATIVE_INFINITY;
-            }
-
-            applyTransforms(transform, zBuffer, img);
-
-            g2.drawImage(img, 0, 0, null);
         }
 
     }
@@ -217,18 +221,17 @@ public class Shape {
         double dz = player.z - z;
         double h = Math.hypot(dx, dz);
         distToPlayer = h;
-        distToPlayer = h;
 
         double temp = (dx * dx + h * h - dz * dz) / (2 * dx * h);
         temp = Math.toDegrees(Math.acos(temp));
-        temp = Math.abs(180 - temp);
         pitchToPlayerRAW = temp;
         pitchToPlayerFOV = player.pitch - pitchToPlayerRAW;
 
         if (Math.abs(pitchToPlayerFOV) > 45) {
+            display = false;
             return false;
         }
-
+        display = true;
         return true;
 
     }

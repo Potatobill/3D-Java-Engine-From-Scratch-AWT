@@ -24,7 +24,7 @@ public class Player {
         x = 0;
         y = 0;
         z = 0;
-        speed = 3;
+        speed = 1;
 
         pitch = 0;
 
