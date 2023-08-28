@@ -108,6 +108,40 @@ public class Shape {
                 applyTransforms(transform, zBuffer, img);
 
                 g2.drawImage(img, 0, 0, null);
+            } else if (type == ShapeType.RECTANGLE) {
+
+                double heading = Math.toRadians(pitchToPlayerFOV / 3);
+                Matrix3 headingTransform = new Matrix3(new double[]{
+                        Math.cos(heading), 0, -Math.sin(heading),
+                        0, 1, 0,
+                        Math.sin(heading), 0, Math.cos(heading)
+                });
+                double pitch = Math.toRadians(0);
+                Matrix3 pitchTransform = new Matrix3(new double[]{
+                        1, 0, 0,
+                        0, Math.cos(pitch), Math.sin(pitch),
+                        0, -Math.sin(pitch), Math.cos(pitch)
+                });
+                Matrix3 zoomTransform = new Matrix3(new double[]{
+                        3 / distToPlayer, 0, 0,
+                        0, 3 / distToPlayer, 0,
+                        0, 0, 3 / distToPlayer
+                });
+
+                Matrix3 transform = headingTransform.multiply(pitchTransform).multiply(zoomTransform);
+
+                BufferedImage img = new BufferedImage(windowWidth, windowHeight, BufferedImage.TYPE_INT_ARGB);
+
+                double[] zBuffer = new double[img.getWidth() * img.getHeight()];
+                // initialize array with extremely far away depths
+                for (int q = 0; q < zBuffer.length; q++) {
+                    zBuffer[q] = Double.NEGATIVE_INFINITY;
+                }
+
+                applyTransforms(transform, zBuffer, img);
+
+                g2.drawImage(img, 0, 0, null);
+
             }
         }
 
@@ -118,6 +152,7 @@ public class Shape {
         int step = windowWidth / 90;
         double temp = pitchToPlayerFOV + 45;
         temp = temp * step;
+        System.out.println("Temp:" + temp);
 
         for (Triangle t : tris) {
             Vertex v1 = transform.transform(t.v1);
@@ -217,15 +252,15 @@ public class Shape {
         double h = Math.hypot(dx, dz);
         distToPlayer = h;
 
-        double temp = Math.asin(dz / h);
-        temp = Math.toDegrees(temp);
+        double temp = Math.atan(dz / dx);
+        temp *= 180/Math.PI; // convert to degrees
+        System.out.println("tan: " + temp);
         pitchToPlayerRAW = temp;
-        if (pitchToPlayerRAW < 0) {
-            pitchToPlayerRAW += 360;
-        }
+        System.out.println(pitchToPlayerRAW);
+
         pitchToPlayerFOV = player.pitch - pitchToPlayerRAW;
 
-        if (Math.abs(pitchToPlayerFOV) > 45) {
+        if (Math.abs(pitchToPlayerFOV) >= 45) {
             display = false;
             return false;
         }

@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main extends JPanel implements KeyListener, ActionListener, MouseMotionListener {
 
@@ -19,6 +22,10 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
     private BufferedImage cursorImg = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
     private Cursor blankCursor = Toolkit.getDefaultToolkit().createCustomCursor(cursorImg, new Point(0, 0), "blank cursor");
     private Cursor defaultCursor;
+
+    private boolean dead = false;
+
+    private int score = 0;
 
     public static void main(String[] args) {
 
@@ -50,30 +57,78 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
 
         setFocusable(true);
 
-        ArrayList<Triangle> tris = new ArrayList<>();
-        tris.add(new Triangle(new Vertex(100, 100, 100),
+        /* ArrayList<Triangle> sphereTris = new ArrayList<>();
+        sphereTris.add(new Triangle(new Vertex(100, 100, 100),
                 new Vertex(-100, -100, 100),
                 new Vertex(-100, 100, -100),
                 Color.RED));
-        tris.add(new Triangle(new Vertex(100, 100, 100),
+        sphereTris.add(new Triangle(new Vertex(100, 100, 100),
                 new Vertex(-100, -100, 100),
                 new Vertex(100, -100, -100),
                 Color.RED));
-        tris.add(new Triangle(new Vertex(-100, 100, -100),
+        sphereTris.add(new Triangle(new Vertex(-100, 100, -100),
                 new Vertex(100, -100, -100),
                 new Vertex(100, 100, 100),
                 Color.RED));
-        tris.add(new Triangle(new Vertex(-100, 100, -100),
+        sphereTris.add(new Triangle(new Vertex(-100, 100, -100),
                 new Vertex(100, -100, -100),
                 new Vertex(-100, -100, 100),
                 Color.RED));
 
-        Shape demoSphere = new Shape(tris, ShapeType.SPHERE, 0, 0, 50);
-        demoSphere.setWindowDimensions(frame.getWidth(), frame.getHeight());
-        demoSphere.setPlayer(player);
+         */
 
-        shapes.add(demoSphere);
+        ArrayList<Triangle> rectTris = new ArrayList<>();
+        rectTris.add(new Triangle(new Vertex(100, 100, -100),
+                new Vertex(100, -100, -100),
+                new Vertex(-100, -100, -100),
+                Color.WHITE));
 
+
+        // Shape demoSphere = new Shape(sphereTris, ShapeType.SPHERE, 0, 0, 50);
+        Shape demoRect = new Shape(rectTris, ShapeType.RECTANGLE, 10, 0, 0);
+        // demoSphere.setWindowDimensions(frame.getWidth(), frame.getHeight());
+        demoRect.setWindowDimensions(frame.getWidth(), frame.getHeight());
+        // demoSphere.setPlayer(player);
+        demoRect.setPlayer(player);
+
+        // shapes.add(demoSphere);
+        shapes.add(demoRect);
+
+        Runnable moveRunnable = new Runnable() {
+            public void run() {
+
+                if (player.isInEscapeMenu()) {
+
+                } else if (dead) {
+
+                } else {
+
+                    score++;
+
+                    for (Shape s : shapes) {
+                        s.x -= 0.1;
+
+                        if (s.x < -0.2) {
+                            s.x = 10;
+                        }
+
+                        if (s.x < 0 && Math.abs(s.z - player.z) < 0.5) {
+                            dead = true;
+                        }
+
+                    }
+                    repaint();
+                }
+            }
+        };
+
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(moveRunnable, 0, 100, TimeUnit.MILLISECONDS);
+
+    }
+
+    public void draw(Graphics2D g) {
+        paintComponent(g);
     }
 
     @Override
@@ -82,34 +137,44 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
         Graphics2D g2 = (Graphics2D) g;
         graphics = g2;
 
-        g2.setColor(Color.CYAN);
-        g2.fillRect(0, 0, frame.getWidth(), frame.getHeight() / 2);
-        g2.setColor(Color.GREEN);
-        g2.fillRect(0, frame.getHeight() / 2, frame.getWidth(), frame.getHeight() / 2);
-        g2.setColor(Color.BLACK);
-        g2.drawString("x: " + player.x, 10, 10);
-        g2.drawString("z: " + player.z, 160, 10);
-        g2.drawString("pitch: " + player.pitch, 310, 10);
-
-        player.setWindowDimensions(frame.getWidth(), frame.getHeight());
-        if (player.isInEscapeMenu()) {
+        if (dead) {
+            g2.setColor(Color.RED);
+            g2.fillRect(0, 0, frame.getWidth(), frame.getHeight());
             g2.setColor(Color.BLACK);
-            graphics.drawString("Escape Menu", getWidth() / 2, getHeight() / 2);
-        }
+            graphics.drawString("GAME OVER", getWidth() / 2, getHeight() / 2);
+            graphics.drawString("Score: " + score, getWidth() / 2, getHeight() / 2 + 15);
+        } else {
 
-        for (Shape s : shapes) {
+            g2.setColor(Color.CYAN);
+            g2.fillRect(0, 0, frame.getWidth(), frame.getHeight() / 2);
+            g2.setColor(Color.GREEN);
+            g2.fillRect(0, frame.getHeight() / 2, frame.getWidth(), frame.getHeight() / 2);
+            g2.setColor(Color.BLACK);
+            g2.drawString("x: " + player.x, 10, 10);
+            g2.drawString("z: " + player.z, 160, 10);
+            g2.drawString("pitch: " + player.pitch, 310, 10);
 
-            if (s.calculatePitchToPlayer()) {
-                s.setWindowDimensions(frame.getWidth(), frame.getHeight());
-                s.draw(g2);
+            player.setWindowDimensions(frame.getWidth(), frame.getHeight());
+            if (player.isInEscapeMenu()) {
+                g2.setColor(Color.BLACK);
+                graphics.drawString("Escape Menu", getWidth() / 2, getHeight() / 2);
             }
 
-        }
+            for (Shape s : shapes) {
 
-        // HORIZONTAL SECTION OF CURSOR
-        g2.fillRect(getWidth() / 2 - 10, getHeight() / 2 - 2, 20, 4);
-        // VERTICAL SECTION OF CURSOR
-        g2.fillRect(getWidth() / 2 - 2, getHeight() / 2 - 10, 4, 20);
+                if (s.calculatePitchToPlayer()) {
+                    s.setWindowDimensions(frame.getWidth(), frame.getHeight());
+                    s.draw(g2);
+                }
+
+            }
+
+            // HORIZONTAL SECTION OF CURSOR
+            g2.fillRect(getWidth() / 2 - 10, getHeight() / 2 - 2, 20, 4);
+            // VERTICAL SECTION OF CURSOR
+            g2.fillRect(getWidth() / 2 - 2, getHeight() / 2 - 10, 4, 20);
+
+        }
 
     }
 
@@ -132,11 +197,11 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
 
         if (keyCode == KeyEvent.VK_D) {
 
-            player.x += player.getSpeed();
+            player.z -= player.getSpeed();
 
         } else if (keyCode == KeyEvent.VK_A) {
 
-            player.x -= player.getSpeed();
+            player.z += player.getSpeed();
 
         } else if (keyCode == KeyEvent.VK_W) {
 
@@ -172,7 +237,7 @@ public class Main extends JPanel implements KeyListener, ActionListener, MouseMo
     @Override
     public void mouseMoved(MouseEvent e) {
 
-        if (player.isInEscapeMenu()) {
+        if (player.isInEscapeMenu() || dead) {
 
         } else {
             player.calculatePitch(e.getX(), e.getY());
